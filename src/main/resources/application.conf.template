@@ -1,0 +1,8 @@
+// Change the credentials below
+
+creds {
+  twitter_api_key = ****
+  twitter_api_secret = ****
+  twitter_access_token = ****-****
+  twitter_access_secret = ****
+}
