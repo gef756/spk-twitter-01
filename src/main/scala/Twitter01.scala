@@ -12,8 +12,8 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.twitter.TwitterUtils
 
 object Twitter01 {
-  def main(args: Array[String]) {
 
+  def registerCreds(): Unit = {
     // Set up authentication credentials
     val config = ConfigFactory.load()
     val creds = config.getConfig("creds")
@@ -25,28 +25,32 @@ object Twitter01 {
       creds.getString("twitter_access_token"))
     System.setProperty("twitter4j.oauth.accessTokenSecret",
       creds.getString("twitter_access_secret"))
+  }
+
+  def countKeys(stream: DStream[String], dur: Duration):
+  DStream[(Int, String)] = {
+    stream.map((_, 1))
+      .reduceByKeyAndWindow(_ + _, dur)
+      .map{case (topic, count) => (count, topic)}
+      .transform(_.sortByKey(ascending = false))
+  }
+
+  def main(args: Array[String]) {
+
+    registerCreds()
 
     // Set up Spark StreamingContext and create stream
-    val filters: Seq[String] = Nil  // add filters here
     val conf: SparkConf = new SparkConf().setAppName("Twitter01")
     val ssc: StreamingContext = new StreamingContext(conf, Seconds(1))
-    val stream = TwitterUtils.createStream(ssc, None, filters)
+    val streamFilters: Seq[String] = Nil  // add filters here
+    val tweetStream = TwitterUtils.createStream(ssc, None, streamFilters)
 
     // Filter stream to just hashtags
-    val hashTags: DStream[String] = stream.flatMap(status => status.getText
+    val hashTags: DStream[String] = tweetStream.flatMap(status => status.getText
                                                   .split(" ")
                                                   .filter(_.startsWith("#")))
 
-
     // Collect and print
-    def countKeys(stream: DStream[String], dur: Duration):
-            DStream[(Int, String)] = {
-      stream.map((_, 1))
-        .reduceByKeyAndWindow(_ + _, dur)
-        .map{case (topic, count) => (count, topic)}
-        .transform(_.sortByKey(ascending = false))
-    }
-
     val topLast60: DStream[(Int, String)] = countKeys(hashTags, Seconds(60))
     val topLast10: DStream[(Int, String)] = countKeys(hashTags, Seconds(10))
 
