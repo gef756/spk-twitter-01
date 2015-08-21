@@ -1,3 +1,3 @@
 # spk-twitter-01
 
-A little experimentation with Spark, Scala, Spark Streaming, sentiment analysis, and more!
+Analysis of tweets using Spark Streaming, Scala, and sentiment analysis
