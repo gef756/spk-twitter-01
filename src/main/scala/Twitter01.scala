@@ -59,7 +59,7 @@ object Twitter01 {
 
 //     Filter stream to just hashtags
     val hashTags: DStream[String] = tweetStream.flatMap(status => status.getText
-                                                  .split(" ")
+                                                  .split("\\s+")
                                                   .filter(_.startsWith("#")))
     val tweets: DStream[String] = tweetStream.map(status => status.getText)
 
