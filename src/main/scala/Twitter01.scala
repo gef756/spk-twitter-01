@@ -57,13 +57,13 @@ object Twitter01 {
     val streamFilters: Seq[String] = Nil  // add filters here
     val tweetStream = TwitterUtils.createStream(ssc, None, streamFilters)
 
-//     Filter stream to just hashtags
+    // Filter stream to just hashtags
     val hashTags: DStream[String] = tweetStream.flatMap(status => status.getText
                                                   .split("\\s+")
                                                   .filter(_.startsWith("#")))
     val tweets: DStream[String] = tweetStream.map(status => status.getText)
 
-//     Collect and print
+    // Collect and print
     val topLast60: DStream[(Int, String)] = countKeys(hashTags, Seconds(60))
     val topLast10: DStream[(Int, String)] = countKeys(hashTags, Seconds(10))
     val sentLast60: DStream[Double] = getSentiment(tweets, Seconds(60), Seconds(1))
@@ -83,8 +83,10 @@ object Twitter01 {
     }
 
     def printSentiment(secs: Int)(rdd: RDD[Double]): Unit = {
+      if (rdd.count() > 0) {
         val sentiment: Double = rdd.first()
         println(f"Sentiment over the last $secs%d seconds: $sentiment%1.2f")
+      }
     }
 
     printTop10(topLast10, "Top 10 (of %s) Results from the last >10s<")
