@@ -21,3 +21,6 @@ application.conf
 
 # IntelliJ
 .idea/
+
+# Stupid Mac
+.DS_Store
